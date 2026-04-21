@@ -11,6 +11,6 @@
   - **Responsive design**, neon glow, smooth animations
 
   ## How to Run
-  1. Clone the repository or download `index.html`.
-  2. Open `index.html` in any modern browser (Chrome, Edge, Firefox).
+  1. Clone the repository or download `SortingFinal.html`.
+  2. Open `SortingFinal.html` in any modern browser (Chrome, Edge, Firefox).
   3. For the best experience, use **Live Server** (VS Code extension) to avoid CORS restrictions with Web Audio.
