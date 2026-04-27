@@ -1,0 +1,1828 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="neon">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SORTIUM — Sorting Algorithm Visualizer</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=JetBrains+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  /* ===== THEMES ===== */
+  :root, [data-theme="neon"] {
+    --bg: #0a0012;
+    --bg2: #0d0018;
+    --bg3: #110020;
+    --surface: #150025;
+    --surface2: #1a002e;
+    --border: #2d0050;
+    --border2: #3d0068;
+    --text: #f0e8ff;
+    --text2: #b088cc;
+    --text3: #6040a0;
+    --accent: #00FFFF;
+    --accent2: #00cccc;
+    --green: #39FF14;
+    --orange: #FF8800;
+    --red: #FF00FF;
+    --purple: #cc44ff;
+    --yellow: #FFFF00;
+    --bar-default: #2D1B4E;
+    --bar-compare: #00FFFF;
+    --bar-swap: #FF00FF;
+    --bar-pivot: #FFFF00;
+    --bar-sorted: #39FF14;
+    --glow: rgba(0, 255, 255, 0.25);
+    --glow-swap: rgba(255, 0, 255, 0.3);
+    --glow-sorted: rgba(57, 255, 20, 0.25);
+    --node-bg: #1a003a;
+    --node-border: #5500aa;
+    --node-active: #00FFFF;
+    --node-merge: #FF00FF;
+    --node-done: #39FF14;
+    --transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    --radius: 6px;
+    --font-display: 'Syne', sans-serif;
+    --font-mono: 'JetBrains Mono', monospace;
+  }
+  [data-theme="cyber"] {
+    --bg: #080b14;
+    --bg2: #0d1220;
+    --bg3: #111827;
+    --surface: #151c2e;
+    --surface2: #1a2235;
+    --border: #1e2d47;
+    --border2: #253450;
+    --text: #e8edf5;
+    --text2: #8fa3c0;
+    --text3: #4d6080;
+    --accent: #00d4ff;
+    --accent2: #0090cc;
+    --green: #00e5a0;
+    --orange: #ff8c42;
+    --red: #ff4d6a;
+    --purple: #b56bff;
+    --yellow: #ffe566;
+    --bar-default: #1e3a5f;
+    --bar-compare: #00d4ff;
+    --bar-swap: #ff4d6a;
+    --bar-pivot: #ffe566;
+    --bar-sorted: #00e5a0;
+    --glow: rgba(0, 212, 255, 0.15);
+    --glow-swap: rgba(255, 77, 106, 0.2);
+    --glow-sorted: rgba(0, 229, 160, 0.2);
+    --node-bg: #0d1a2e;
+    --node-border: #1e3a5f;
+    --node-active: #00d4ff;
+    --node-merge: #ff4d6a;
+    --node-done: #00e5a0;
+  }
+  [data-theme="light"] {
+    --bg: #f0f4fb;
+    --bg2: #e8eef8;
+    --bg3: #dde5f5;
+    --surface: #ffffff;
+    --surface2: #f5f8ff;
+    --border: #c8d6ee;
+    --border2: #b0c4e4;
+    --text: #0d1525;
+    --text2: #3d5080;
+    --text3: #6080aa;
+    --accent: #0070cc;
+    --accent2: #0055aa;
+    --green: #00a870;
+    --orange: #d05000;
+    --red: #cc2244;
+    --purple: #7733cc;
+    --yellow: #cc8800;
+    --bar-default: #a8c4e8;
+    --bar-compare: #0070cc;
+    --bar-swap: #cc2244;
+    --bar-pivot: #cc8800;
+    --bar-sorted: #00a870;
+    --glow: rgba(0, 112, 204, 0.1);
+    --glow-swap: rgba(204, 34, 68, 0.15);
+    --glow-sorted: rgba(0, 168, 112, 0.15);
+    --node-bg: #f0f4ff;
+    --node-border: #b0c4e4;
+    --node-active: #0070cc;
+    --node-merge: #cc2244;
+    --node-done: #00a870;
+  }
+
+  /* ===== RESET & BASE ===== */
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; overflow: hidden; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font-mono);
+    font-size: 13px;
+    line-height: 1.5;
+    transition: background var(--transition), color var(--transition);
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* ===== HEADER ===== */
+  header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 20px;
+    height: 52px;
+    background: var(--bg2);
+    border-bottom: 1px solid var(--border);
+    flex-shrink: 0;
+    z-index: 10;
+  }
+  .logo {
+    font-family: var(--font-display);
+    font-size: 22px;
+    font-weight: 800;
+    letter-spacing: 0.12em;
+    color: var(--accent);
+    text-shadow: 0 0 20px var(--glow);
+    user-select: none;
+  }
+  [data-theme="neon"] .logo {
+    text-shadow: 0 0 10px #00FFFF, 0 0 30px rgba(0,255,255,0.5);
+  }
+  .logo span { color: var(--text2); font-weight: 400; }
+  .header-right { display: flex; align-items: center; gap: 8px; }
+  .btn-icon {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    color: var(--text2);
+    width: 34px; height: 34px;
+    border-radius: var(--radius);
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 16px;
+    transition: all var(--transition);
+  }
+  .btn-icon:hover { border-color: var(--accent); color: var(--accent); background: var(--surface2); }
+  .race-btn {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    color: var(--text2);
+    padding: 0 14px;
+    height: 34px;
+    border-radius: var(--radius);
+    cursor: pointer;
+    font-family: var(--font-display);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    transition: all var(--transition);
+    display: flex; align-items: center; gap: 6px;
+  }
+  .race-btn:hover, .race-btn.active { border-color: var(--orange); color: var(--orange); background: rgba(255,140,66,0.08); }
+
+  /* Theme switcher */
+  .theme-switcher {
+    display: flex;
+    gap: 4px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 3px;
+  }
+  .theme-btn {
+    height: 28px;
+    padding: 0 10px;
+    border-radius: 4px;
+    border: none;
+    cursor: pointer;
+    font-family: var(--font-display);
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    transition: all var(--transition);
+    background: transparent;
+    color: var(--text3);
+  }
+  .theme-btn.active {
+    background: var(--accent);
+    color: var(--bg);
+    box-shadow: 0 0 10px var(--glow);
+  }
+  .theme-btn:hover:not(.active) { color: var(--text2); background: var(--surface2); }
+
+  /* ===== LAYOUT ===== */
+  .app-body {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    padding: 12px;
+    gap: 10px;
+  }
+
+  /* ===== METRICS BAR ===== */
+  .metrics-bar {
+    display: flex;
+    gap: 8px;
+    flex-shrink: 0;
+    flex-wrap: nowrap;
+  }
+  .metric-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 8px 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+    flex: 1;
+  }
+  .metric-label {
+    font-size: 9px;
+    font-weight: 500;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text3);
+  }
+  .metric-value {
+    font-family: var(--font-display);
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--text);
+    white-space: nowrap;
+  }
+  .metric-value.accent { color: var(--accent); }
+  .metric-value.green { color: var(--green); }
+  .metric-value.orange { color: var(--orange); }
+  .metric-value.red { color: var(--red); }
+  .metric-value.purple { color: var(--purple); }
+
+  .complexity-group {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 8px 14px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+  .complexity-item { display: flex; flex-direction: column; gap: 2px; }
+
+  /* ===== MAIN AREA ===== */
+  .main-area {
+    flex: 1;
+    display: flex;
+    gap: 10px;
+    overflow: hidden;
+    min-height: 0;
+  }
+
+  /* ===== PANELS ===== */
+  .panel {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    min-width: 0;
+  }
+  .panel-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-shrink: 0;
+  }
+  .panel-title {
+    font-family: var(--font-display);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text3);
+  }
+  .algo-badge {
+    font-family: var(--font-display);
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--accent);
+    letter-spacing: 0.05em;
+  }
+
+  /* ===== VIZ CANVAS ===== */
+  .viz-wrapper {
+    flex: 1;
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+    position: relative;
+    min-height: 0;
+  }
+  #vizCanvas, #vizCanvas2 {
+    width: 100%; height: 100%;
+    display: block;
+  }
+
+  /* ===== TREE CANVAS ===== */
+  .tree-wrapper {
+    height: 180px;
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+    flex-shrink: 0;
+    position: relative;
+  }
+  .tree-label {
+    position: absolute;
+    top: 4px; left: 8px;
+    font-size: 9px;
+    color: var(--text3);
+    font-family: var(--font-display);
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    pointer-events: none;
+    z-index: 2;
+  }
+  #treeCanvas, #treeCanvas2 {
+    width: 100%; height: 100%;
+    display: block;
+  }
+
+  /* ===== CONTROLS ===== */
+  .controls-panel {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    width: 220px;
+    flex-shrink: 0;
+  }
+  .control-section {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .control-section-title {
+    font-family: var(--font-display);
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--text3);
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 6px;
+    margin-bottom: 2px;
+  }
+  .control-row { display: flex; flex-direction: column; gap: 4px; }
+  .control-label {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 11px;
+    color: var(--text2);
+  }
+  .control-label span { color: var(--accent); font-weight: 500; }
+
+  /* SELECT */
+  select {
+    width: 100%;
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    color: var(--text);
+    border-radius: var(--radius);
+    padding: 7px 10px;
+    font-family: var(--font-mono);
+    font-size: 12px;
+    cursor: pointer;
+    transition: border-color var(--transition);
+    outline: none;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%234d6080'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 10px center;
+  }
+  select:focus { border-color: var(--accent); }
+
+  /* RANGE */
+  input[type=range] {
+    -webkit-appearance: none;
+    width: 100%;
+    height: 4px;
+    background: var(--border);
+    border-radius: 2px;
+    outline: none;
+    cursor: pointer;
+  }
+  input[type=range]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 14px; height: 14px;
+    border-radius: 50%;
+    background: var(--accent);
+    box-shadow: 0 0 6px var(--glow);
+    transition: transform 0.15s;
+  }
+  input[type=range]::-webkit-slider-thumb:hover { transform: scale(1.2); }
+
+  /* BUTTONS */
+  .btn-row { display: flex; gap: 6px; }
+  .btn {
+    flex: 1;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    color: var(--text2);
+    padding: 8px 10px;
+    border-radius: var(--radius);
+    cursor: pointer;
+    font-family: var(--font-display);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    transition: all var(--transition);
+    display: flex; align-items: center; justify-content: center; gap: 5px;
+  }
+  .btn:hover { border-color: var(--accent); color: var(--accent); }
+  .btn:disabled { opacity: 0.4; cursor: not-allowed; }
+  .btn-primary {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: var(--bg);
+    box-shadow: 0 0 14px var(--glow);
+  }
+  .btn-primary:hover { background: var(--accent2); border-color: var(--accent2); color: #fff; }
+  .btn-danger {
+    background: rgba(255,77,106,0.1);
+    border-color: var(--red);
+    color: var(--red);
+  }
+  .btn-danger:hover { background: rgba(255,77,106,0.2); }
+  .btn-new {
+    width: 100%;
+    background: rgba(0,229,160,0.08);
+    border-color: var(--green);
+    color: var(--green);
+  }
+  .btn-new:hover { background: rgba(0,229,160,0.16); }
+
+  /* STATUS */
+  .status-dot {
+    width: 7px; height: 7px;
+    border-radius: 50%;
+    background: var(--text3);
+    flex-shrink: 0;
+  }
+  .status-dot.running { background: var(--green); box-shadow: 0 0 6px var(--green); animation: pulse 1s infinite; }
+  .status-dot.paused { background: var(--orange); }
+  .status-dot.done { background: var(--accent); }
+  @keyframes pulse { 0%,100% { opacity:1 } 50% { opacity:0.4 } }
+  .status-label {
+    font-size: 11px;
+    color: var(--text2);
+    display: flex; align-items: center; gap: 6px;
+  }
+
+  /* Sound */
+  .sound-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+  .toggle {
+    width: 32px; height: 18px;
+    background: var(--border);
+    border-radius: 9px;
+    position: relative;
+    cursor: pointer;
+    transition: background var(--transition);
+    flex-shrink: 0;
+    border: none;
+    outline: none;
+  }
+  .toggle::after {
+    content: '';
+    position: absolute;
+    top: 2px; left: 2px;
+    width: 14px; height: 14px;
+    border-radius: 50%;
+    background: var(--text2);
+    transition: all var(--transition);
+  }
+  .toggle.on { background: var(--accent); }
+  .toggle.on::after { left: 16px; background: var(--bg); }
+
+  /* Race panel metrics */
+  .race-metrics {
+    display: flex;
+    gap: 6px;
+    flex-shrink: 0;
+  }
+  .race-metric {
+    flex: 1;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 6px 8px;
+    display: flex; flex-direction: column; gap: 1px;
+  }
+
+  /* Scrollbar */
+  ::-webkit-scrollbar { width: 4px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 2px; }
+
+  /* Legend */
+  .legend {
+    display: flex; gap: 10px; flex-wrap: wrap; align-items: center;
+  }
+  .legend-item { display: flex; align-items: center; gap: 4px; font-size: 10px; color: var(--text3); }
+  .legend-dot { width: 8px; height: 8px; border-radius: 2px; flex-shrink: 0; }
+
+  /* Step counter */
+  .step-counter {
+    font-size: 11px; color: var(--text3);
+    font-family: var(--font-mono);
+  }
+  .step-counter span { color: var(--text2); }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header>
+  <div class="logo">SORTIUM <span>// visualizer</span></div>
+  <div class="header-right">
+    <button class="race-btn" id="raceModeBtn" onclick="toggleRaceMode()">⚡ Race Mode</button>
+    <div class="theme-switcher">
+      <button class="theme-btn active" id="themeNeon" onclick="setTheme('neon')">Neon</button>
+      <button class="theme-btn" id="themeCyber" onclick="setTheme('cyber')">Cyber</button>
+      <button class="theme-btn" id="themeLight" onclick="setTheme('light')">Light</button>
+    </div>
+    <button class="btn-icon" id="soundToggleBtn" onclick="toggleSound()" title="Toggle sound">♪</button>
+  </div>
+</header>
+
+<!-- METRICS BAR -->
+<div class="app-body">
+<div class="metrics-bar" id="metricsBar">
+  <div class="metric-card">
+    <div class="metric-label">Algorithm</div>
+    <div class="metric-value accent" id="metAlgo">Bubble Sort</div>
+  </div>
+  <div class="metric-card">
+    <div class="metric-label">Comparisons</div>
+    <div class="metric-value orange" id="metComparisons">0</div>
+  </div>
+  <div class="metric-card">
+    <div class="metric-label">Swaps</div>
+    <div class="metric-value red" id="metSwaps">0</div>
+  </div>
+  <div class="metric-card">
+    <div class="metric-label">Step</div>
+    <div class="metric-value" id="metStep">0 / 0</div>
+  </div>
+  <div class="complexity-group">
+    <div class="complexity-item">
+      <div class="metric-label">Best</div>
+      <div class="metric-value green" id="cmpBest">O(n)</div>
+    </div>
+    <div class="complexity-item">
+      <div class="metric-label">Average</div>
+      <div class="metric-value orange" id="cmpAvg">O(n²)</div>
+    </div>
+    <div class="complexity-item">
+      <div class="metric-label">Worst</div>
+      <div class="metric-value red" id="cmpWorst">O(n²)</div>
+    </div>
+    <div class="complexity-item">
+      <div class="metric-label">Space</div>
+      <div class="metric-value purple" id="cmpSpace">O(1)</div>
+    </div>
+  </div>
+</div>
+
+<!-- MAIN AREA -->
+<div class="main-area">
+
+  <!-- PRIMARY PANEL -->
+  <div class="panel" id="primaryPanel">
+    <div class="panel-header">
+      <div class="panel-title">Primary Visualization</div>
+      <div style="display:flex; align-items:center; gap:12px;">
+        <div class="legend">
+          <div class="legend-item"><div class="legend-dot" style="background:var(--bar-compare)"></div>Comparing</div>
+          <div class="legend-item"><div class="legend-dot" style="background:var(--bar-swap)"></div>Swapping</div>
+          <div class="legend-item"><div class="legend-dot" style="background:var(--bar-pivot)"></div>Pivot</div>
+          <div class="legend-item"><div class="legend-dot" style="background:var(--bar-sorted)"></div>Sorted</div>
+        </div>
+        <div class="step-counter" id="stepCounter">Step <span id="stepNum">0</span> / <span id="stepTotal">0</span></div>
+        <div class="status-label"><div class="status-dot" id="statusDot"></div><span id="statusText">Ready</span></div>
+      </div>
+    </div>
+    <div class="viz-wrapper"><canvas id="vizCanvas"></canvas></div>
+    <div class="tree-wrapper">
+      <div class="tree-label" id="treeLabel1">Recursion Tree</div>
+      <canvas id="treeCanvas"></canvas>
+    </div>
+  </div>
+
+  <!-- RACE PANEL (hidden by default) -->
+  <div class="panel" id="racePanel" style="display:none;">
+    <div class="panel-header">
+      <div class="panel-title">Race Opponent</div>
+      <div class="algo-badge" id="raceAlgoBadge">Quick Sort</div>
+    </div>
+    <div class="race-metrics">
+      <div class="race-metric">
+        <div class="metric-label">Comparisons</div>
+        <div class="metric-value orange" id="raceComparisons">0</div>
+      </div>
+      <div class="race-metric">
+        <div class="metric-label">Swaps</div>
+        <div class="metric-value red" id="raceSwaps">0</div>
+      </div>
+      <div class="race-metric">
+        <div class="metric-label">Step</div>
+        <div class="metric-value" id="raceStep">0 / 0</div>
+      </div>
+    </div>
+    <div class="viz-wrapper"><canvas id="vizCanvas2"></canvas></div>
+    <div class="tree-wrapper">
+      <div class="tree-label" id="treeLabel2">Recursion Tree</div>
+      <canvas id="treeCanvas2"></canvas>
+    </div>
+  </div>
+
+  <!-- CONTROLS -->
+  <div class="controls-panel">
+    <div class="control-section">
+      <div class="control-section-title">Algorithm</div>
+      <div class="control-row">
+        <select id="algoSelect" onchange="onAlgoChange()">
+          <option value="bubble">Bubble Sort</option>
+          <option value="selection">Selection Sort</option>
+          <option value="insertion">Insertion Sort</option>
+          <option value="merge">Merge Sort</option>
+          <option value="quick">Quick Sort</option>
+        </select>
+      </div>
+      <div class="control-row" id="raceAlgoRow" style="display:none;">
+        <div class="control-label">Race vs.</div>
+        <select id="raceAlgoSelect" onchange="onRaceAlgoChange()">
+          <option value="quick">Quick Sort</option>
+          <option value="bubble">Bubble Sort</option>
+          <option value="selection">Selection Sort</option>
+          <option value="insertion">Insertion Sort</option>
+          <option value="merge">Merge Sort</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="control-section">
+      <div class="control-section-title">Parameters</div>
+      <div class="control-row">
+        <div class="control-label">Array Size <span id="sizeVal">40</span></div>
+        <input type="range" id="sizeSlider" min="5" max="80" value="40" oninput="onSizeChange()">
+      </div>
+      <div class="control-row">
+        <div class="control-label">Speed <span id="speedVal">5</span></div>
+        <input type="range" id="speedSlider" min="1" max="10" value="5" oninput="onSpeedChange()">
+      </div>
+      <div class="control-row">
+        <div class="sound-row">
+          <span style="font-size:11px; color:var(--text2)">Sound</span>
+          <button class="toggle on" id="soundToggle" onclick="toggleSound()"></button>
+        </div>
+        <div class="control-label" style="margin-top:4px;">Volume <span id="volVal">60</span>%</div>
+        <input type="range" id="volSlider" min="0" max="100" value="60" oninput="onVolChange()">
+      </div>
+    </div>
+
+    <div class="control-section">
+      <div class="control-section-title">Playback</div>
+      <button class="btn btn-new" onclick="generateArray()">↺ New Array</button>
+      <div class="btn-row">
+        <button class="btn" id="prevBtn" onclick="stepBack()" disabled>◀◀</button>
+        <button class="btn btn-primary" id="playBtn" onclick="togglePlay()">▶ Start</button>
+        <button class="btn" id="nextBtn" onclick="stepForward()" disabled>▶▶</button>
+      </div>
+      <button class="btn btn-danger" id="resetBtn" onclick="reset()">■ Reset</button>
+    </div>
+  </div>
+</div>
+</div><!-- end app-body -->
+
+<script>
+/* ===================================================
+   SORTIUM — Sorting Algorithm Visualizer v2
+   Enhanced with real tree visualization + 3 themes
+   =================================================== */
+
+// ─── State ────────────────────────────────────────
+const state = {
+  array: [],
+  steps: [],
+  stepIndex: -1,
+  isRunning: false,
+  isPaused: false,
+  isDone: false,
+  algorithm: 'bubble',
+  comparisons: 0,
+  swaps: 0,
+  animTimer: null,
+  soundEnabled: true,
+  volume: 0.6,
+  speedMs: () => Math.pow(2, 10 - parseInt(document.getElementById('speedSlider').value)) * 5 + 5,
+  raceMode: false,
+  raceSteps: [],
+  raceStepIndex: -1,
+  raceAlgorithm: 'quick',
+  raceIsDone: false,
+};
+
+// ─── Complexity Table ──────────────────────────────
+const COMPLEXITY = {
+  bubble:    { best:'O(n)', avg:'O(n²)', worst:'O(n²)', space:'O(1)' },
+  selection: { best:'O(n²)', avg:'O(n²)', worst:'O(n²)', space:'O(1)' },
+  insertion: { best:'O(n)', avg:'O(n²)', worst:'O(n²)', space:'O(1)' },
+  merge:     { best:'O(n log n)', avg:'O(n log n)', worst:'O(n log n)', space:'O(n)' },
+  quick:     { best:'O(n log n)', avg:'O(n log n)', worst:'O(n²)', space:'O(log n)' },
+};
+const ALGO_NAMES = {
+  bubble:'Bubble Sort', selection:'Selection Sort', insertion:'Insertion Sort',
+  merge:'Merge Sort', quick:'Quick Sort'
+};
+
+// ─── Audio ─────────────────────────────────────────
+let audioCtx = null;
+function getAudioCtx() {
+  if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  if (audioCtx.state === 'suspended') audioCtx.resume();
+  return audioCtx;
+}
+function playNote(freq, type='sine', duration=0.06, delay=0, vol=null) {
+  if (!state.soundEnabled) return;
+  try {
+    const ctx = getAudioCtx();
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.connect(gain); gain.connect(ctx.destination);
+    osc.type = type;
+    osc.frequency.value = freq;
+    const v = (vol !== null ? vol : state.volume) * 0.15;
+    gain.gain.setValueAtTime(0, ctx.currentTime + delay);
+    gain.gain.linearRampToValueAtTime(v, ctx.currentTime + delay + 0.01);
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + delay + duration);
+    osc.start(ctx.currentTime + delay);
+    osc.stop(ctx.currentTime + delay + duration + 0.02);
+  } catch(e) {}
+}
+function valueToFreq(v, maxV) { return 150 + (v / maxV) * 700; }
+function playCompare(vals, maxV) {
+  vals.slice(0,2).forEach((v,i) => playNote(valueToFreq(v,maxV), 'sine', 0.08, i*0.04));
+}
+function playSwap(vals, maxV) {
+  vals.slice(0,2).forEach((v,i) => playNote(valueToFreq(v,maxV), 'triangle', 0.1, i*0.03));
+}
+function playSorted() { playNote(880,'sine',0.12,0,0.3); setTimeout(()=>playNote(1100,'sine',0.1,0,0.2),80); }
+
+// ─── Canvas Setup ──────────────────────────────────
+const canvas1 = document.getElementById('vizCanvas');
+const ctx1 = canvas1.getContext('2d');
+const canvas2 = document.getElementById('vizCanvas2');
+const ctx2 = canvas2.getContext('2d');
+const treeCanvas1 = document.getElementById('treeCanvas');
+const treeCtx1 = treeCanvas1.getContext('2d');
+const treeCanvas2 = document.getElementById('treeCanvas2');
+const treeCtx2 = treeCanvas2.getContext('2d');
+
+function resizeCanvases() {
+  [canvas1, canvas2, treeCanvas1, treeCanvas2].forEach(c => {
+    const rect = c.parentElement.getBoundingClientRect();
+    c.width = rect.width; c.height = rect.height;
+  });
+  renderCurrentStep();
+}
+window.addEventListener('resize', resizeCanvases);
+
+// ─── Color Resolution ──────────────────────────────
+function getCSSVar(name) {
+  return getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+}
+
+// ─── Drawing ───────────────────────────────────────
+function drawBars(canvas, ctx2d, arr, comparing=[], swapping=[], pivot=null, sortedIndices=[], title='') {
+  const W = canvas.width, H = canvas.height;
+  ctx2d.clearRect(0,0,W,H);
+
+  if (!arr || arr.length === 0) return;
+
+  const n = arr.length;
+  const maxVal = Math.max(...arr, 1);
+  const barW = Math.max(1, (W - 2) / n);
+  const gap = Math.max(0.5, barW * 0.08);
+
+  // Background grid lines
+  ctx2d.strokeStyle = getCSSVar('--border');
+  ctx2d.lineWidth = 0.5;
+  for (let i=1; i<=4; i++) {
+    const y = H * (1 - i*0.25);
+    ctx2d.beginPath(); ctx2d.moveTo(0,y); ctx2d.lineTo(W,y); ctx2d.stroke();
+  }
+
+  const sortedSet = new Set(sortedIndices);
+  const compareSet = new Set(comparing);
+  const swapSet = new Set(swapping);
+
+  for (let i=0; i<n; i++) {
+    const x = i * barW + gap/2;
+    const bw = barW - gap;
+    const bh = Math.max(2, (arr[i] / maxVal) * (H - 6));
+    const y = H - bh;
+
+    let color;
+    if (swapSet.has(i)) color = getCSSVar('--bar-swap');
+    else if (i === pivot) color = getCSSVar('--bar-pivot');
+    else if (compareSet.has(i)) color = getCSSVar('--bar-compare');
+    else if (sortedSet.has(i)) color = getCSSVar('--bar-sorted');
+    else color = getCSSVar('--bar-default');
+
+    const grad = ctx2d.createLinearGradient(x, y, x, H);
+    grad.addColorStop(0, color);
+    grad.addColorStop(1, color + '44');
+    ctx2d.fillStyle = grad;
+    ctx2d.fillRect(x, y, bw, bh);
+
+    if (swapSet.has(i) || compareSet.has(i) || i===pivot || sortedSet.has(i)) {
+      ctx2d.shadowColor = color;
+      ctx2d.shadowBlur = 8;
+      ctx2d.fillRect(x, y, bw, bh);
+      ctx2d.shadowBlur = 0;
+    }
+
+    ctx2d.fillStyle = color;
+    ctx2d.fillRect(x, y, bw, 2);
+  }
+}
+
+// ─── Real Recursion Tree Drawing ────────────────────
+/*
+  We build an actual visual tree layout:
+  - Compute the full tree structure from the step's treeData
+  - Position nodes using a level-based layout
+  - Draw edges (lines) between parent and child nodes
+  - Highlight the active node
+*/
+
+function buildMergeTreeLayout(treeData, n) {
+  // treeData: array of {low, high, phase, depth} in order they appeared
+  // We need to compute a spatial tree layout
+  // Build unique nodes keyed by low-high
+  const nodeMap = new Map();
+  const order = [];
+
+  treeData.forEach(frame => {
+    const key = `${frame.low}-${frame.high}`;
+    if (!nodeMap.has(key)) {
+      nodeMap.set(key, { ...frame, key, children: [], parent: null });
+      order.push(key);
+    } else {
+      // Update phase info (split -> merge)
+      const existing = nodeMap.get(key);
+      if (frame.phase) existing.phase = frame.phase;
+      if (frame.done) existing.done = true;
+    }
+  });
+
+  // Build parent-child relationships
+  order.forEach(key => {
+    const node = nodeMap.get(key);
+    const { low, high } = node;
+    if (low < high) {
+      const mid = Math.floor((low + high) / 2);
+      const leftKey = `${low}-${mid}`;
+      const rightKey = `${mid+1}-${high}`;
+      if (nodeMap.has(leftKey)) {
+        const child = nodeMap.get(leftKey);
+        if (!child.parent) {
+          child.parent = key;
+          node.children.push(leftKey);
+        }
+      }
+      if (nodeMap.has(rightKey)) {
+        const child = nodeMap.get(rightKey);
+        if (!child.parent) {
+          child.parent = key;
+          node.children.push(rightKey);
+        }
+      }
+    }
+  });
+
+  // Compute depths
+  order.forEach(key => {
+    const node = nodeMap.get(key);
+    let d = 0, cur = key;
+    while (nodeMap.get(cur)?.parent) {
+      cur = nodeMap.get(cur).parent;
+      d++;
+    }
+    node.depth = d;
+  });
+
+  return { nodeMap, order };
+}
+
+function drawRealTree(tCanvas, tCtx, step, algo) {
+  const W = tCanvas.width, H = tCanvas.height;
+  tCtx.clearRect(0, 0, W, H);
+
+  const isTreeAlgo = (algo === 'merge' || algo === 'quick');
+
+  if (!step || !step.treeData || step.treeData.length === 0 || !isTreeAlgo) {
+    tCtx.fillStyle = getCSSVar('--text3');
+    tCtx.font = `11px monospace`;
+    tCtx.textAlign = 'center';
+    const msg = isTreeAlgo
+      ? 'Tree builds as sort progresses...'
+      : 'Recursion tree — only for Merge/Quick Sort';
+    tCtx.fillText(msg, W/2, H/2);
+    return;
+  }
+
+  const textColor = getCSSVar('--text2');
+  const nodeColor = getCSSVar('--node-bg');
+  const nodeBorder = getCSSVar('--node-border');
+  const activeColor = getCSSVar('--node-active');
+  const mergeColor = getCSSVar('--node-merge');
+  const doneColor = getCSSVar('--node-done');
+  const pivotColor = getCSSVar('--bar-pivot');
+
+  if (algo === 'merge') {
+    drawMergeTree(tCtx, W, H, step, textColor, nodeColor, nodeBorder, activeColor, mergeColor, doneColor);
+  } else if (algo === 'quick') {
+    drawQuickTree(tCtx, W, H, step, textColor, nodeColor, nodeBorder, activeColor, pivotColor, doneColor);
+  }
+}
+
+function drawMergeTree(tCtx, W, H, step, textColor, nodeColor, nodeBorder, activeColor, mergeColor, doneColor) {
+  const treeData = step.treeData;
+  const activeKey = step.activeKey;
+
+  // Collect unique nodes preserving insertion order
+  const seenKeys = new Set();
+  const nodes = [];
+  treeData.forEach(f => {
+    const k = `${f.low}-${f.high}`;
+    if (!seenKeys.has(k)) {
+      seenKeys.add(k);
+      nodes.push({ ...f, key: k });
+    } else {
+      const existing = nodes.find(n => n.key === k);
+      if (existing && f.phase) existing.phase = f.phase;
+      if (existing && f.done) existing.done = true;
+    }
+  });
+
+  if (nodes.length === 0) return;
+
+  const n = step.array.length;
+
+  // Assign depths based on range size
+  nodes.forEach(node => {
+    node.depth = Math.round(Math.log2(n / Math.max(1, node.high - node.low + 1)));
+  });
+
+  const depthMap = new Map();
+  nodes.forEach(node => {
+    if (!depthMap.has(node.depth)) depthMap.set(node.depth, []);
+    depthMap.get(node.depth).push(node);
+  });
+
+  const depths = [...depthMap.keys()].sort((a,b) => a-b);
+  const maxDepthSeen = depths.length > 0 ? depths[depths.length-1] : 0;
+  const numLevels = maxDepthSeen + 1;
+
+  // ── Padding: label row + inner padding ──────────────
+  const TOP_PAD = 18;   // below label
+  const SIDE_PAD = 10;
+  const BOT_PAD = 8;
+
+  const usableH = H - TOP_PAD - BOT_PAD;
+  const usableW = W - SIDE_PAD * 2;
+
+  const rowH = usableH / numLevels;
+
+  // Auto-scale node height so it always fits in rowH with gap
+  const nodeH = Math.min(22, Math.max(14, rowH * 0.55));
+
+  // Compute max nodes in any level to auto-scale font/nodeW
+  const maxNodesInLevel = Math.max(...[...depthMap.values()].map(arr => arr.length), 1);
+  // Estimate label width: "[XX..XX]" = ~8 chars * fontSize
+  // Start with a generous font, then shrink if too many nodes
+  let fontSize = Math.min(11, Math.max(7, nodeH * 0.62));
+
+  // Build parent-child map
+  const nodeByKey = new Map();
+  nodes.forEach(nd => nodeByKey.set(nd.key, nd));
+
+  // Assign x positions level by level (sorted by low for deterministic order)
+  depths.forEach(depth => {
+    const levelNodes = depthMap.get(depth).sort((a,b) => a.low - b.low);
+    const count = levelNodes.length;
+    levelNodes.forEach((node, i) => {
+      node.x = SIDE_PAD + usableW * (i + 0.5) / count;
+      node.y = TOP_PAD + node.depth * rowH + rowH * 0.35;
+    });
+  });
+
+  // Compute nodeW per level to prevent overlap and edge clipping
+  // nodeW must fit within the slot width minus a small gap
+  depths.forEach(depth => {
+    const levelNodes = depthMap.get(depth).sort((a,b) => a.low - b.low);
+    const count = levelNodes.length;
+    const slotW = usableW / count;
+    // Leave at least 6px gap between nodes; cap nodeW to slotW-6
+    const maxSlotNodeW = Math.max(30, slotW - 6);
+
+    levelNodes.forEach(node => {
+      tCtx.font = `${fontSize}px monospace`;
+      const label = `[${node.low}..${node.high}]`;
+      const measuredW = tCtx.measureText(label).width + 8;
+      node.nodeW = Math.min(maxSlotNodeW, Math.max(28, measuredW));
+    });
+  });
+
+  // Build parent-child relationships for edge drawing
+  nodes.forEach(node => {
+    if (node.low < node.high) {
+      const mid = Math.floor((node.low + node.high) / 2);
+      node.leftChild = nodeByKey.get(`${node.low}-${mid}`) || null;
+      node.rightChild = nodeByKey.get(`${mid+1}-${node.high}`) || null;
+    }
+  });
+
+  // Clip everything to usable area to prevent edge bleed
+  tCtx.save();
+  tCtx.beginPath();
+  tCtx.rect(SIDE_PAD - 2, TOP_PAD - 2, usableW + 4, usableH + BOT_PAD + 2);
+  tCtx.clip();
+
+  // Draw edges first
+  tCtx.lineWidth = 1;
+  nodes.forEach(node => {
+    [node.leftChild, node.rightChild].forEach(child => {
+      if (!child) return;
+      tCtx.strokeStyle = nodeBorder;
+      tCtx.beginPath();
+      tCtx.moveTo(node.x, node.y + nodeH / 2);
+      tCtx.lineTo(child.x, child.y - nodeH / 2);
+      tCtx.stroke();
+    });
+  });
+
+  // Draw nodes
+  nodes.forEach(node => {
+    const isActive = node.key === activeKey;
+    const isMerge = node.phase === 'merge';
+    const isDone = node.done;
+    const label = `[${node.low}..${node.high}]`;
+    const nodeW = node.nodeW || 36;
+    const x = node.x - nodeW / 2;
+    const y = node.y - nodeH / 2;
+
+    // Clamp x so node never bleeds past edges
+    const safeX = Math.max(SIDE_PAD, Math.min(W - SIDE_PAD - nodeW, x));
+
+    let fillColor = nodeColor;
+    let strokeColor = nodeBorder;
+    let glow = null;
+
+    if (isDone) { strokeColor = doneColor; fillColor = doneColor + '22'; }
+    if (isMerge) { strokeColor = mergeColor; fillColor = mergeColor + '22'; }
+    if (isActive) {
+      strokeColor = isMerge ? mergeColor : activeColor;
+      fillColor = (isMerge ? mergeColor : activeColor) + '33';
+      glow = strokeColor;
+    }
+
+    if (glow) { tCtx.shadowColor = glow; tCtx.shadowBlur = 6; }
+
+    tCtx.fillStyle = fillColor;
+    tCtx.beginPath();
+    tCtx.roundRect(safeX, y, nodeW, nodeH, 3);
+    tCtx.fill();
+
+    tCtx.strokeStyle = strokeColor;
+    tCtx.lineWidth = isActive ? 1.5 : 1;
+    tCtx.beginPath();
+    tCtx.roundRect(safeX, y, nodeW, nodeH, 3);
+    tCtx.stroke();
+    tCtx.shadowBlur = 0;
+
+    // Clip text inside the node box
+    tCtx.save();
+    tCtx.beginPath();
+    tCtx.rect(safeX + 2, y, nodeW - 4, nodeH);
+    tCtx.clip();
+    tCtx.fillStyle = isActive ? strokeColor : (isDone ? doneColor : textColor);
+    tCtx.font = `${fontSize}px monospace`;
+    tCtx.textAlign = 'center';
+    tCtx.textBaseline = 'middle';
+    tCtx.fillText(label, safeX + nodeW / 2, y + nodeH / 2);
+    tCtx.restore();
+  });
+
+  tCtx.restore();
+}
+
+function drawQuickTree(tCtx, W, H, step, textColor, nodeColor, nodeBorder, activeColor, pivotColor, doneColor) {
+  const treeData = step.treeData;
+  const activeKey = step.activeKey;
+
+  const seenKeys = new Set();
+  const nodes = [];
+  treeData.forEach(f => {
+    const k = `${f.low}-${f.high}`;
+    if (!seenKeys.has(k)) {
+      seenKeys.add(k);
+      nodes.push({ ...f, key: k });
+    } else {
+      const existing = nodes.find(n => n.key === k);
+      if (existing && f.pivotIdx !== undefined) existing.pivotIdx = f.pivotIdx;
+      if (existing && f.done) existing.done = true;
+    }
+  });
+
+  if (nodes.length === 0) return;
+
+  const n = step.array.length;
+
+  // Assign depths based on range size relative to n
+  nodes.forEach(node => {
+    node.depth = Math.round(Math.log2(n / Math.max(1, node.high - node.low + 1)));
+  });
+
+  const maxDepth = Math.max(...nodes.map(n => n.depth), 0);
+  const depthMap = new Map();
+  nodes.forEach(node => {
+    if (!depthMap.has(node.depth)) depthMap.set(node.depth, []);
+    depthMap.get(node.depth).push(node);
+  });
+
+  const depths = [...depthMap.keys()].sort((a,b) => a-b);
+  const numLevels = maxDepth + 1;
+
+  // ── Padding ────────────────────────────────────────
+  const TOP_PAD = 18;
+  const SIDE_PAD = 10;
+  const BOT_PAD = 8;
+
+  const usableH = H - TOP_PAD - BOT_PAD;
+  const usableW = W - SIDE_PAD * 2;
+
+  const rowH = usableH / numLevels;
+  const nodeH = Math.min(22, Math.max(14, rowH * 0.55));
+  const fontSize = Math.min(11, Math.max(7, nodeH * 0.62));
+
+  const nodeByKey = new Map();
+  nodes.forEach(nd => nodeByKey.set(nd.key, nd));
+
+  // Assign x positions (sorted by low for deterministic order)
+  depths.forEach(depth => {
+    const levelNodes = depthMap.get(depth).sort((a,b) => a.low - b.low);
+    const count = levelNodes.length;
+    levelNodes.forEach((node, i) => {
+      node.x = SIDE_PAD + usableW * (i + 0.5) / count;
+      node.y = TOP_PAD + node.depth * rowH + rowH * 0.35;
+    });
+  });
+
+  // Compute per-node nodeW capped to slot width
+  depths.forEach(depth => {
+    const levelNodes = depthMap.get(depth).sort((a,b) => a.low - b.low);
+    const count = levelNodes.length;
+    const slotW = usableW / count;
+    const maxSlotNodeW = Math.max(30, slotW - 6);
+
+    levelNodes.forEach(node => {
+      const hasPivot = node.pivotIdx !== undefined && node.pivotIdx !== null;
+      const label = hasPivot
+        ? `[${node.low}..${node.high}] p=${node.pivotIdx}`
+        : `[${node.low}..${node.high}]`;
+      tCtx.font = `${fontSize}px monospace`;
+      const measuredW = tCtx.measureText(label).width + 8;
+      node.nodeW = Math.min(maxSlotNodeW, Math.max(28, measuredW));
+      node._label = label;
+    });
+  });
+
+  // Build parent edges
+  nodes.forEach(node => {
+    if (node.pivotIdx !== undefined && node.pivotIdx !== null) {
+      const parent = nodes.find(p =>
+        p !== node &&
+        p.pivotIdx !== undefined &&
+        (
+          (node.low === p.low && node.high === p.pivotIdx - 1) ||
+          (node.low === p.pivotIdx + 1 && node.high === p.high)
+        )
+      );
+      node.parentNode = parent || null;
+    } else {
+      node.parentNode = null;
+    }
+  });
+
+  // Clip to usable area
+  tCtx.save();
+  tCtx.beginPath();
+  tCtx.rect(SIDE_PAD - 2, TOP_PAD - 2, usableW + 4, usableH + BOT_PAD + 2);
+  tCtx.clip();
+
+  // Draw edges
+  tCtx.lineWidth = 1;
+  nodes.forEach(node => {
+    if (node.parentNode) {
+      tCtx.strokeStyle = nodeBorder;
+      tCtx.beginPath();
+      tCtx.moveTo(node.parentNode.x, node.parentNode.y + nodeH / 2);
+      tCtx.lineTo(node.x, node.y - nodeH / 2);
+      tCtx.stroke();
+    }
+  });
+
+  // Draw nodes
+  nodes.forEach(node => {
+    const isActive = node.key === activeKey;
+    const isDone = node.done;
+    const hasPivot = node.pivotIdx !== undefined && node.pivotIdx !== null;
+    const label = node._label || `[${node.low}..${node.high}]`;
+    const nodeW = node.nodeW || 40;
+    const x = node.x - nodeW / 2;
+    const y = node.y - nodeH / 2;
+
+    // Clamp x so node never bleeds past edges
+    const safeX = Math.max(SIDE_PAD, Math.min(W - SIDE_PAD - nodeW, x));
+
+    let strokeColor = hasPivot ? pivotColor : nodeBorder;
+    let fillColor = nodeColor;
+    let glow = null;
+
+    if (isDone) { strokeColor = doneColor; fillColor = doneColor + '22'; }
+    if (isActive) {
+      strokeColor = hasPivot ? pivotColor : activeColor;
+      fillColor = strokeColor + '33';
+      glow = strokeColor;
+    }
+
+    if (glow) { tCtx.shadowColor = glow; tCtx.shadowBlur = 6; }
+
+    tCtx.fillStyle = fillColor;
+    tCtx.beginPath();
+    tCtx.roundRect(safeX, y, nodeW, nodeH, 3);
+    tCtx.fill();
+
+    tCtx.strokeStyle = strokeColor;
+    tCtx.lineWidth = isActive ? 1.5 : 1;
+    tCtx.beginPath();
+    tCtx.roundRect(safeX, y, nodeW, nodeH, 3);
+    tCtx.stroke();
+    tCtx.shadowBlur = 0;
+
+    // Clip text inside node box
+    tCtx.save();
+    tCtx.beginPath();
+    tCtx.rect(safeX + 2, y, nodeW - 4, nodeH);
+    tCtx.clip();
+    tCtx.fillStyle = isActive ? strokeColor : (isDone ? doneColor : textColor);
+    tCtx.font = `${fontSize}px monospace`;
+    tCtx.textAlign = 'center';
+    tCtx.textBaseline = 'middle';
+    tCtx.fillText(label, safeX + nodeW / 2, y + nodeH / 2);
+    tCtx.restore();
+  });
+
+  tCtx.restore();
+}
+
+// ─── Step Rendering ────────────────────────────────
+function renderStep(idx, primary=true) {
+  const steps = primary ? state.steps : state.raceSteps;
+  const canvas = primary ? canvas1 : canvas2;
+  const ctx2d = primary ? ctx1 : ctx2;
+  const tCanvas = primary ? treeCanvas1 : treeCanvas2;
+  const tCtx = primary ? treeCtx1 : treeCtx2;
+  const algo = primary ? state.algorithm : state.raceAlgorithm;
+
+  if (idx < 0 || idx >= steps.length) return;
+  const step = steps[idx];
+  const sortedIndices = [];
+  if (step.sorted) step.sorted.forEach(s => sortedIndices.push(s));
+
+  drawBars(canvas, ctx2d, step.array, step.comparing||[], step.swapping||[], step.pivot, sortedIndices);
+  drawRealTree(tCanvas, tCtx, step, algo);
+
+  if (primary) {
+    let comps=0, swps=0;
+    for(let i=0; i<=idx; i++) {
+      if(steps[i].comparing && steps[i].comparing.length>1) comps++;
+      if(steps[i].swapping && steps[i].swapping.length>1) swps++;
+    }
+    state.comparisons = comps; state.swaps = swps;
+    document.getElementById('metComparisons').textContent = comps;
+    document.getElementById('metSwaps').textContent = swps;
+    document.getElementById('metStep').textContent = `${idx+1} / ${steps.length}`;
+    document.getElementById('stepNum').textContent = idx+1;
+    document.getElementById('stepTotal').textContent = steps.length;
+  } else {
+    let comps=0, swps=0;
+    for(let i=0; i<=idx; i++) {
+      if(steps[i].comparing && steps[i].comparing.length>1) comps++;
+      if(steps[i].swapping && steps[i].swapping.length>1) swps++;
+    }
+    document.getElementById('raceComparisons').textContent = comps;
+    document.getElementById('raceSwaps').textContent = swps;
+    document.getElementById('raceStep').textContent = `${idx+1} / ${steps.length}`;
+  }
+}
+
+function renderCurrentStep() {
+  if (state.steps.length > 0) renderStep(state.stepIndex >= 0 ? state.stepIndex : 0);
+  if (state.raceMode && state.raceSteps.length > 0) renderStep(state.raceStepIndex >= 0 ? state.raceStepIndex : 0, false);
+  if (state.steps.length === 0) {
+    drawBars(canvas1, ctx1, state.array);
+    drawRealTree(treeCanvas1, treeCtx1, null, state.algorithm);
+  }
+  if (state.raceMode && state.raceSteps.length === 0) {
+    drawBars(canvas2, ctx2, state.array);
+    drawRealTree(treeCanvas2, treeCtx2, null, state.raceAlgorithm);
+  }
+}
+
+// ─── Array Generation ──────────────────────────────
+function generateArray() {
+  stopAnimation();
+  const size = parseInt(document.getElementById('sizeSlider').value);
+  state.array = Array.from({length: size}, () => Math.floor(Math.random()*96)+4);
+  state.steps = []; state.raceSteps = [];
+  state.stepIndex = -1; state.raceStepIndex = -1;
+  state.isDone = false; state.raceIsDone = false;
+  state.isRunning = false; state.isPaused = false;
+  updateUI();
+  drawBars(canvas1, ctx1, state.array);
+  drawRealTree(treeCanvas1, treeCtx1, null, state.algorithm);
+  if (state.raceMode) {
+    drawBars(canvas2, ctx2, state.array);
+    drawRealTree(treeCanvas2, treeCtx2, null, state.raceAlgorithm);
+  }
+  setStatus('ready');
+}
+
+// ─── Algorithm Step Generators ─────────────────────
+function generateSteps(arr, algo) {
+  const steps = [];
+  const a = [...arr];
+  const n = a.length;
+  const sorted = new Set();
+
+  // treeData accumulates across steps for tree algos
+  // Each step gets a snapshot of treeData so far + activeKey
+  let treeData = [];
+
+  function addStep(array, comparing=[], swapping=[], pivot=null, activeKey=null, sortedSet=sorted) {
+    steps.push({
+      array: [...array],
+      comparing: [...comparing],
+      swapping: [...swapping],
+      pivot,
+      treeData: treeData.map(f => ({...f})), // snapshot
+      activeKey,
+      sorted: new Set(sortedSet)
+    });
+  }
+
+  if (algo === 'bubble') {
+    for (let i=0; i<n-1; i++) {
+      for (let j=0; j<n-1-i; j++) {
+        addStep(a, [j,j+1]);
+        if (a[j] > a[j+1]) {
+          [a[j],a[j+1]] = [a[j+1],a[j]];
+          addStep(a, [], [j,j+1]);
+        }
+      }
+      sorted.add(n-1-i);
+      addStep(a, [], [], null, null, new Set(sorted));
+    }
+    sorted.add(0);
+    addStep(a, [], [], null, null, new Set(sorted));
+  }
+
+  else if (algo === 'selection') {
+    for (let i=0; i<n-1; i++) {
+      let minIdx = i;
+      for (let j=i+1; j<n; j++) {
+        addStep(a, [minIdx,j]);
+        if (a[j] < a[minIdx]) minIdx = j;
+      }
+      if (minIdx !== i) {
+        addStep(a, [], [i,minIdx]);
+        [a[i],a[minIdx]] = [a[minIdx],a[i]];
+        addStep(a, [], [i,minIdx]);
+      }
+      sorted.add(i);
+      addStep(a, [], [], null, null, new Set(sorted));
+    }
+    sorted.add(n-1);
+    addStep(a, [], [], null, null, new Set(sorted));
+  }
+
+  else if (algo === 'insertion') {
+    sorted.add(0);
+    for (let i=1; i<n; i++) {
+      let j=i;
+      addStep(a, [j]);
+      while (j>0) {
+        addStep(a, [j-1,j]);
+        if (a[j-1] > a[j]) {
+          addStep(a, [], [j-1,j]);
+          [a[j-1],a[j]] = [a[j],a[j-1]];
+          addStep(a, [], [j-1,j]);
+          j--;
+        } else { break; }
+      }
+      sorted.add(i);
+      addStep(a, [], [], null, null, new Set(sorted));
+    }
+  }
+
+  else if (algo === 'merge') {
+    // treeData grows as we encounter new ranges
+    function ensureNode(lo, hi, phase) {
+      const key = `${lo}-${hi}`;
+      const existing = treeData.find(f => f.low === lo && f.high === hi);
+      if (!existing) {
+        treeData.push({ low: lo, high: hi, phase: phase || 'split' });
+      } else if (phase) {
+        existing.phase = phase;
+      }
+      return key;
+    }
+
+    function mergeSort(lo, hi) {
+      if (lo >= hi) {
+        ensureNode(lo, hi, 'done');
+        sorted.add(lo);
+        addStep(a, [lo], [], null, `${lo}-${hi}`, new Set(sorted));
+        return;
+      }
+      const mid = Math.floor((lo+hi)/2);
+      const key = ensureNode(lo, hi, 'split');
+      addStep(a, [lo,hi], [], null, key, new Set(sorted));
+
+      mergeSort(lo, mid);
+      mergeSort(mid+1, hi);
+
+      // Merge phase
+      const existing = treeData.find(f => f.low === lo && f.high === hi);
+      if (existing) existing.phase = 'merge';
+      addStep(a, [lo,hi], [], null, key, new Set(sorted));
+
+      const left = a.slice(lo, mid+1);
+      const right = a.slice(mid+1, hi+1);
+      let li=0, ri=0, k=lo;
+      while (li<left.length && ri<right.length) {
+        addStep(a, [lo+li, mid+1+ri], [], null, key, new Set(sorted));
+        if (left[li] <= right[ri]) { a[k]=left[li]; li++; }
+        else { a[k]=right[ri]; ri++; }
+        addStep(a, [], [k], null, key, new Set(sorted));
+        k++;
+      }
+      while (li<left.length) { a[k]=left[li]; li++; k++; }
+      while (ri<right.length) { a[k]=right[ri]; ri++; k++; }
+      for(let x=lo;x<=hi;x++) sorted.add(x);
+      if (existing) existing.done = true;
+      addStep(a, [], [], null, null, new Set(sorted));
+    }
+    mergeSort(0, n-1);
+    addStep(a, [], [], null, null, new Set(Array.from({length:n},(_,i)=>i)));
+  }
+
+  else if (algo === 'quick') {
+    function ensureNode(lo, hi, pivotIdx) {
+      const key = `${lo}-${hi}`;
+      const existing = treeData.find(f => f.low === lo && f.high === hi);
+      if (!existing) {
+        treeData.push({ low: lo, high: hi, pivotIdx });
+      } else if (pivotIdx !== undefined) {
+        existing.pivotIdx = pivotIdx;
+      }
+      return key;
+    }
+
+    function quickSort(lo, hi) {
+      if (lo >= hi) {
+        if (lo === hi) {
+          sorted.add(lo);
+          ensureNode(lo, hi);
+          addStep(a, [], [], lo, `${lo}-${hi}`, new Set(sorted));
+        }
+        return;
+      }
+      const key = ensureNode(lo, hi);
+      const pivotVal = a[hi];
+      let pIdx = hi;
+      addStep(a, [], [], pIdx, key, new Set(sorted));
+
+      let i = lo - 1;
+      for (let j=lo; j<hi; j++) {
+        addStep(a, [j,hi], [], pIdx, key, new Set(sorted));
+        if (a[j] <= pivotVal) {
+          i++;
+          if (i !== j) {
+            addStep(a, [], [i,j], pIdx, key, new Set(sorted));
+            [a[i],a[j]] = [a[j],a[i]];
+            addStep(a, [], [i,j], pIdx, key, new Set(sorted));
+          }
+        }
+      }
+      const finalPivot = i+1;
+      addStep(a, [], [finalPivot,hi], pIdx, key, new Set(sorted));
+      [a[finalPivot],a[hi]] = [a[hi],a[finalPivot]];
+      sorted.add(finalPivot);
+      // Update node with final pivot
+      const existing = treeData.find(f => f.low === lo && f.high === hi);
+      if (existing) existing.pivotIdx = finalPivot;
+      addStep(a, [], [], finalPivot, key, new Set(sorted));
+
+      // Create child nodes
+      if (lo <= finalPivot-1) ensureNode(lo, finalPivot-1);
+      if (finalPivot+1 <= hi) ensureNode(finalPivot+1, hi);
+
+      quickSort(lo, finalPivot-1);
+      quickSort(finalPivot+1, hi);
+
+      if (existing) existing.done = true;
+    }
+    quickSort(0, n-1);
+    const allSorted = new Set(Array.from({length:n},(_,i)=>i));
+    addStep(a, [], [], null, null, allSorted);
+  }
+
+  return steps;
+}
+
+// ─── Playback ──────────────────────────────────────
+function advanceStep() {
+  const primary = state.stepIndex < state.steps.length - 1;
+  const race = state.raceMode && state.raceStepIndex < state.raceSteps.length - 1;
+
+  if (primary) {
+    state.stepIndex++;
+    const step = state.steps[state.stepIndex];
+    renderStep(state.stepIndex, true);
+    if (step.swapping && step.swapping.length > 1) {
+      const vals = step.swapping.map(i=>step.array[i]);
+      playSwap(vals, Math.max(...step.array));
+    } else if (step.comparing && step.comparing.length > 1) {
+      const vals = step.comparing.map(i=>step.array[i]);
+      playCompare(vals, Math.max(...step.array));
+    }
+  } else {
+    state.isDone = true;
+  }
+
+  if (state.raceMode) {
+    if (race) {
+      state.raceStepIndex++;
+      renderStep(state.raceStepIndex, false);
+    } else {
+      state.raceIsDone = true;
+    }
+  }
+
+  const allDone = state.isDone && (!state.raceMode || state.raceIsDone);
+  if (allDone) {
+    stopAnimation();
+    setStatus('done');
+    playSorted();
+    updateUI();
+  }
+  updateUI();
+}
+
+function startAnimation() {
+  if (state.animTimer) return;
+  const tick = () => {
+    if (!state.isRunning || state.isPaused) return;
+    advanceStep();
+    if (state.isRunning && !state.isDone) {
+      state.animTimer = setTimeout(tick, state.speedMs());
+    }
+  };
+  state.animTimer = setTimeout(tick, state.speedMs());
+}
+
+function stopAnimation() {
+  if (state.animTimer) { clearTimeout(state.animTimer); state.animTimer = null; }
+  state.isRunning = false;
+}
+
+function togglePlay() {
+  if (state.isDone) return;
+
+  if (!state.isRunning && !state.isPaused) {
+    state.steps = generateSteps([...state.array], state.algorithm);
+    state.stepIndex = 0;
+    if (state.raceMode) {
+      state.raceSteps = generateSteps([...state.array], state.raceAlgorithm);
+      state.raceStepIndex = 0;
+    }
+    renderStep(0, true);
+    if (state.raceMode) renderStep(0, false);
+    state.isRunning = true;
+    state.isPaused = false;
+    setStatus('running');
+    startAnimation();
+  } else if (state.isRunning && !state.isPaused) {
+    state.isPaused = true;
+    state.isRunning = false;
+    if (state.animTimer) { clearTimeout(state.animTimer); state.animTimer = null; }
+    setStatus('paused');
+  } else if (state.isPaused) {
+    state.isPaused = false;
+    state.isRunning = true;
+    setStatus('running');
+    startAnimation();
+  }
+  updateUI();
+}
+
+function stepForward() {
+  if (!state.isRunning || state.isPaused) {
+    if (state.steps.length === 0) {
+      state.steps = generateSteps([...state.array], state.algorithm);
+      if (state.raceMode) state.raceSteps = generateSteps([...state.array], state.raceAlgorithm);
+    }
+    if (!state.isRunning && !state.isPaused) {
+      state.stepIndex = 0;
+      if (state.raceMode) state.raceStepIndex = 0;
+    }
+    if (state.stepIndex < state.steps.length - 1) {
+      state.stepIndex++;
+      renderStep(state.stepIndex, true);
+    }
+    if (state.raceMode && state.raceStepIndex < state.raceSteps.length - 1) {
+      state.raceStepIndex++;
+      renderStep(state.raceStepIndex, false);
+    }
+    state.isPaused = true;
+    setStatus('paused');
+    updateUI();
+  }
+}
+
+function stepBack() {
+  if (state.stepIndex > 0) {
+    state.stepIndex--;
+    renderStep(state.stepIndex, true);
+  }
+  if (state.raceMode && state.raceStepIndex > 0) {
+    state.raceStepIndex--;
+    renderStep(state.raceStepIndex, false);
+  }
+  state.isPaused = true;
+  setStatus('paused');
+  updateUI();
+}
+
+function reset() {
+  stopAnimation();
+  state.steps = []; state.raceSteps = [];
+  state.stepIndex = -1; state.raceStepIndex = -1;
+  state.isRunning = false; state.isPaused = false;
+  state.isDone = false; state.raceIsDone = false;
+  state.comparisons = 0; state.swaps = 0;
+  drawBars(canvas1, ctx1, state.array);
+  drawRealTree(treeCanvas1, treeCtx1, null, state.algorithm);
+  if (state.raceMode) {
+    drawBars(canvas2, ctx2, state.array);
+    drawRealTree(treeCanvas2, treeCtx2, null, state.raceAlgorithm);
+  }
+  setStatus('ready');
+  updateUI();
+}
+
+// ─── UI Helpers ────────────────────────────────────
+function setStatus(s) {
+  const dot = document.getElementById('statusDot');
+  const txt = document.getElementById('statusText');
+  dot.className = 'status-dot ' + s;
+  txt.textContent = s.charAt(0).toUpperCase() + s.slice(1);
+}
+
+function updateUI() {
+  const { isRunning, isPaused, isDone, steps, stepIndex } = state;
+  const playBtn = document.getElementById('playBtn');
+  const prevBtn = document.getElementById('prevBtn');
+  const nextBtn = document.getElementById('nextBtn');
+  const resetBtn = document.getElementById('resetBtn');
+
+  if (isDone) {
+    playBtn.textContent = '✓ Done'; playBtn.disabled = true;
+  } else if (isRunning && !isPaused) {
+    playBtn.innerHTML = '⏸ Pause'; playBtn.disabled = false;
+  } else {
+    playBtn.innerHTML = isPaused ? '▶ Resume' : '▶ Start'; playBtn.disabled = false;
+  }
+
+  prevBtn.disabled = stepIndex <= 0;
+  nextBtn.disabled = isDone || (steps.length > 0 && stepIndex >= steps.length - 1);
+  resetBtn.disabled = false;
+
+  const c = COMPLEXITY[state.algorithm];
+  document.getElementById('cmpBest').textContent = c.best;
+  document.getElementById('cmpAvg').textContent = c.avg;
+  document.getElementById('cmpWorst').textContent = c.worst;
+  document.getElementById('cmpSpace').textContent = c.space;
+  document.getElementById('metAlgo').textContent = ALGO_NAMES[state.algorithm];
+
+  if (state.raceMode) {
+    document.getElementById('raceAlgoBadge').textContent = ALGO_NAMES[state.raceAlgorithm];
+  }
+}
+
+function onAlgoChange() {
+  state.algorithm = document.getElementById('algoSelect').value;
+  reset();
+}
+function onRaceAlgoChange() {
+  state.raceAlgorithm = document.getElementById('raceAlgoSelect').value;
+  reset();
+}
+function onSizeChange() {
+  document.getElementById('sizeVal').textContent = document.getElementById('sizeSlider').value;
+  generateArray();
+}
+function onSpeedChange() {
+  document.getElementById('speedVal').textContent = document.getElementById('speedSlider').value;
+}
+function onVolChange() {
+  state.volume = parseInt(document.getElementById('volSlider').value)/100;
+  document.getElementById('volVal').textContent = document.getElementById('volSlider').value;
+}
+
+// ─── Theme ─────────────────────────────────────────
+function setTheme(theme) {
+  document.documentElement.setAttribute('data-theme', theme);
+  ['Neon', 'Cyber', 'Light'].forEach(t => {
+    const btn = document.getElementById('theme' + t);
+    btn.classList.toggle('active', t.toLowerCase() === theme);
+  });
+  renderCurrentStep();
+}
+
+// ─── Sound toggle ──────────────────────────────────
+function toggleSound() {
+  state.soundEnabled = !state.soundEnabled;
+  const btn = document.getElementById('soundToggle');
+  const hdrBtn = document.getElementById('soundToggleBtn');
+  btn.className = 'toggle ' + (state.soundEnabled ? 'on' : '');
+  hdrBtn.textContent = state.soundEnabled ? '♪' : '♪̵';
+}
+
+// ─── Race Mode ─────────────────────────────────────
+function toggleRaceMode() {
+  state.raceMode = !state.raceMode;
+  const btn = document.getElementById('raceModeBtn');
+  const panel = document.getElementById('racePanel');
+  const algoRow = document.getElementById('raceAlgoRow');
+
+  if (state.raceMode) {
+    btn.classList.add('active');
+    panel.style.display = 'flex';
+    algoRow.style.display = 'block';
+  } else {
+    btn.classList.remove('active');
+    panel.style.display = 'none';
+    algoRow.style.display = 'none';
+  }
+
+  setTimeout(() => {
+    resizeCanvases();
+    reset();
+  }, 50);
+}
+
+// ─── Init ──────────────────────────────────────────
+function init() {
+  setTimeout(() => {
+    resizeCanvases();
+    generateArray();
+    updateUI();
+  }, 100);
+}
+
+init();
+</script>
+</body>
+</html>
