@@ -6,11 +6,11 @@
 
 ## Live Project
 
-Add your deployed link here: `https://your-site-link.com`
+`https://sortium.netlify.app/`
 
 ## GitHub Repository
 
-Add your repo link here: `https://github.com/yourusername/sortium`
+`https://github.com/imsarvanib/SortingVisualiser`
 
 ---
 
